@@ -103,20 +103,21 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       if (record instanceof KiekerMetadataRecord && !full) {
          addMappingRecord(record);
       }
-      
-      while (!writable) {
-         try {
-            Thread.sleep(10);
-         } catch (InterruptedException e) {
-            e.printStackTrace();
-         }
-      }
-      
+
+//      while (!writable) {
+//         try {
+//            Thread.sleep(10);
+//         } catch (InterruptedException e) {
+//            e.printStackTrace();
+//         }
+//      }
+
       if (currentWriter != null) {
-         LOG.log(Level.FINEST, "Record: " + record);
+         LOG.log(Level.INFO, "Record: " + record);
          // LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
          currentWriter.writeMonitoringRecord(record);
-      } 
+      }
+      written++;
    }
 
    private synchronized void addMappingRecord(final IMonitoringRecord record) {
@@ -132,15 +133,17 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       }
    }
 
-   boolean writable = true;
-   
+//   boolean writable = true;
+   int written = 0;
+
    @Override
    public void setFolder(final File writingFolder) {
+      LOG.info("Written before folder change: " + written);
       if (currentWriter != null) {
-         writable = false;
+//         writable = false;
          LOG.info("Terminating old writer " + System.currentTimeMillis());
          try {
-            currentWriter.onTerminating(); 
+            currentWriter.onTerminating();
          } catch (BufferUnderflowException e) {
             LOG.info("Kieker exeption occured during closing old writer; ignoring " + System.currentTimeMillis());
             e.printStackTrace();
@@ -154,8 +157,8 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       addRecordsToNewWriter(writer);
       full = true;
       currentWriter = writer;
-      writable = true;
-      
+//      writable = true;
+
       LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
    }
 
