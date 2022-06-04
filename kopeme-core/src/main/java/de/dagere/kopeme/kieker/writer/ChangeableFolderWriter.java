@@ -112,7 +112,7 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       if (record instanceof OperationExecutionRecord) {
          String signature = ((OperationExecutionRecord) record).getOperationSignature();
          if (!monitoredMethods.contains(signature)) {
-            LOG.log(Level.INFO, "Record: " + record);
+            LOG.log(Level.INFO, "Record: " + signature);
             monitoredMethods.add(signature);
          }
       }
@@ -153,6 +153,7 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
    @Override
    public void setFolder(final File writingFolder) {
       LOG.info("Written before folder change: " + written);
+      monitoredMethods.clear();
       if (currentWriter != null) {
 //         writable = false;
          LOG.info("Terminating old writer " + System.currentTimeMillis());
