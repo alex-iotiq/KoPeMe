@@ -4,15 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.channels.ClosedChannelException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import kieker.common.configuration.Configuration;
 import kieker.common.record.IMonitoringRecord;
+import kieker.common.record.controlflow.OperationExecutionRecord;
 import kieker.common.record.misc.KiekerMetadataRecord;
 import kieker.common.record.misc.RegistryRecord;
 import kieker.monitoring.writer.AbstractMonitoringWriter;
@@ -97,12 +100,23 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       LOG.info("Initializing " + getClass());
       currentWriter.onStarting();
    }
+   
+   Set<String> monitoredMethods = new HashSet<>();
 
    @Override
    public void writeMonitoringRecord(final IMonitoringRecord record) {
       if (record instanceof KiekerMetadataRecord && !full) {
          addMappingRecord(record);
       }
+      
+      if (record instanceof OperationExecutionRecord) {
+         String signature = ((OperationExecutionRecord) record).getOperationSignature();
+         if (!monitoredMethods.contains(signature)) {
+            LOG.log(Level.INFO, "Record: " + record);
+            monitoredMethods.add(signature);
+         }
+      }
+      
 
 //      while (!writable) {
 //         try {
@@ -113,7 +127,7 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
 //      }
 
       if (currentWriter != null) {
-         LOG.log(Level.INFO, "Record: " + record);
+         
          // LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
          currentWriter.writeMonitoringRecord(record);
       }
