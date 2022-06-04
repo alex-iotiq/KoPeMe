@@ -119,7 +119,7 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
    @Override
    public void onTerminating() {
       if (currentWriter != null) {
-         LOG.info("Terminating writing");
+         LOG.info("Terminating writing " + System.currentTimeMillis());
          currentWriter.onTerminating();
       }
    }
@@ -127,14 +127,14 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
    @Override
    public void setFolder(final File writingFolder) {
       if (currentWriter != null) {
-         LOG.info("Terminating old writer");
+         LOG.info("Terminating old writer " + System.currentTimeMillis());
          LOG.info("writer: " + currentWriter.getClass());
          try {
-            Thread.sleep(1500);
+            Thread.sleep(500);
             currentWriter.onTerminating();
-            Thread.sleep(1500);
+            Thread.sleep(500);
          } catch (BufferUnderflowException e) {
-            LOG.info("Kieker exeption occured during closing old writer; ignoring");
+            LOG.info("Kieker exeption occured during closing old writer; ignoring " + System.currentTimeMillis());
             e.printStackTrace();
          } catch (InterruptedException e) {
             e.printStackTrace();
