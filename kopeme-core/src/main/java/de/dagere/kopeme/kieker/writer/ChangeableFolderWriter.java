@@ -103,19 +103,20 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       if (record instanceof KiekerMetadataRecord && !full) {
          addMappingRecord(record);
       }
-      // LOG.info("Writing: " + record);
+      
+      while (!writable) {
+         try {
+            Thread.sleep(10);
+         } catch (InterruptedException e) {
+            e.printStackTrace();
+         }
+      }
+      
       if (currentWriter != null) {
          LOG.log(Level.FINEST, "Record: " + record);
          // LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
          currentWriter.writeMonitoringRecord(record);
-      } else {
-         try {
-            Thread.sleep(100);
-         } catch (InterruptedException e) {
-            e.printStackTrace();
-         }
-         writeMonitoringRecord(record);
-      }
+      } 
    }
 
    private synchronized void addMappingRecord(final IMonitoringRecord record) {
@@ -131,15 +132,15 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       }
    }
 
+   boolean writable = true;
+   
    @Override
    public void setFolder(final File writingFolder) {
       if (currentWriter != null) {
-         AbstractMonitoringWriter temp = currentWriter;
-         currentWriter = null;
+         writable = false;
          LOG.info("Terminating old writer " + System.currentTimeMillis());
-         LOG.info("writer: " + temp.getClass());
          try {
-            temp.onTerminating(); 
+            currentWriter.onTerminating(); 
          } catch (BufferUnderflowException e) {
             LOG.info("Kieker exeption occured during closing old writer; ignoring " + System.currentTimeMillis());
             e.printStackTrace();
@@ -149,10 +150,12 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
       final String absolutePath = writingFolder.getAbsolutePath();
       configuration.setProperty(CONFIG_PATH, absolutePath);
       final AbstractMonitoringWriter writer = createWriter(configuration);
-      LOG.info("New writer " + System.identityHashCode(writer) + " created; old writer " + System.identityHashCode(currentWriter) + " Mapping: " + mappingRecords.size());
+      LOG.info("New writer " + System.identityHashCode(writer) + " created; old writer " + System.identityHashCode(currentWriter));
       addRecordsToNewWriter(writer);
       full = true;
       currentWriter = writer;
+      writable = true;
+      
       LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
    }
 
