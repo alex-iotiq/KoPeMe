@@ -108,6 +108,13 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
          LOG.log(Level.FINEST, "Record: " + record);
          // LOG.info("Change writing to: " + System.identityHashCode(currentWriter));
          currentWriter.writeMonitoringRecord(record);
+      } else {
+         try {
+            Thread.sleep(100);
+         } catch (InterruptedException e) {
+            e.printStackTrace();
+         }
+         writeMonitoringRecord(record);
       }
    }
 
@@ -127,20 +134,18 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
    @Override
    public void setFolder(final File writingFolder) {
       if (currentWriter != null) {
+         AbstractMonitoringWriter temp = currentWriter;
+         currentWriter = null;
          LOG.info("Terminating old writer " + System.currentTimeMillis());
-         LOG.info("writer: " + currentWriter.getClass());
+         LOG.info("writer: " + temp.getClass());
          try {
-            Thread.sleep(1500);
-            currentWriter.onTerminating();
-            Thread.sleep(1500);
+            temp.onTerminating(); 
          } catch (BufferUnderflowException e) {
             LOG.info("Kieker exeption occured during closing old writer; ignoring " + System.currentTimeMillis());
             e.printStackTrace();
-         } catch (InterruptedException e) {
-            e.printStackTrace();
          }
+         LOG.info("Writing to: " + writingFolder + " " + System.identityHashCode(currentWriter));
       }
-      LOG.info("Writing to: " + writingFolder + " " + System.identityHashCode(currentWriter));
       final String absolutePath = writingFolder.getAbsolutePath();
       configuration.setProperty(CONFIG_PATH, absolutePath);
       final AbstractMonitoringWriter writer = createWriter(configuration);
