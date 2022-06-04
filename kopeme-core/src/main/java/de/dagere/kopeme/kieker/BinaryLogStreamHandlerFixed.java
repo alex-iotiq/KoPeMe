@@ -54,10 +54,12 @@ public class BinaryLogStreamHandlerFixed extends AbstractLogStreamHandler {
    public void close() throws IOException {
       this.buffer.flip();
       try {
-         while (this.buffer.hasRemaining()) {
-            this.numOfBytes += this.outputChannel.write(this.buffer);
+         synchronized (this) {
+            while (this.buffer.hasRemaining()) {
+               this.numOfBytes += this.outputChannel.write(this.buffer);
+            }
+            this.buffer.clear();
          }
-         this.buffer.clear();
       } catch (final IOException e) {
          LOGGER.error("Caught exception while writing to the channel.", e);
          WriterUtil.close(this.outputChannel, LOGGER);
@@ -79,12 +81,10 @@ public class BinaryLogStreamHandlerFixed extends AbstractLogStreamHandler {
          this.buffer.flip();
 
          try {
-            synchronized (this) {
-               while (this.buffer.hasRemaining()) {
-                  this.numOfBytes += this.outputChannel.write(this.buffer);
-               }
-               this.buffer.clear();
+            while (this.buffer.hasRemaining()) {
+               this.numOfBytes += this.outputChannel.write(this.buffer);
             }
+            this.buffer.clear();
          } catch (final IOException e) {
             LOGGER.error("Caught exception while writing to the channel.", e);
             WriterUtil.close(this.outputChannel, LOGGER);
