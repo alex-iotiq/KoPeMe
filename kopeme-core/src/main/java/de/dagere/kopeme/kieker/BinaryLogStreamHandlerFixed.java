@@ -81,7 +81,7 @@ public class BinaryLogStreamHandlerFixed extends AbstractLogStreamHandler {
          this.buffer.flip();
 
          try {
-            synchronized (this) {
+            synchronized (this) { 
                while (this.buffer.hasRemaining()) {
                   this.numOfBytes += this.outputChannel.write(this.buffer);
                }
