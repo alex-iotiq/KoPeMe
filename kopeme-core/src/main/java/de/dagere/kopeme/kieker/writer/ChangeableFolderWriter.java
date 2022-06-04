@@ -130,8 +130,9 @@ public class ChangeableFolderWriter extends AbstractMonitoringWriter implements 
          LOG.info("Terminating old writer");
          LOG.info("writer: " + currentWriter.getClass());
          try {
-            Thread.sleep(5);
+            Thread.sleep(1500);
             currentWriter.onTerminating();
+            Thread.sleep(1500);
          } catch (BufferUnderflowException e) {
             LOG.info("Kieker exeption occured during closing old writer; ignoring");
             e.printStackTrace();
